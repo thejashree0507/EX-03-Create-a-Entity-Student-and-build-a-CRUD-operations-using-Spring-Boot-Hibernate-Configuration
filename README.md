@@ -4,43 +4,50 @@
 To develop a Spring Boot application that performs CRUD (Create, Read, Update, Delete) operations on a Student entity using Spring Data JPA (Hibernate).
 
 ## ALGORITHM:
-Create Spring Boot Project
 
-Add dependencies: Spring Web, Spring Data JPA, H2 Database or MySQL, Spring Boot DevTools
+1\. Start the process.
 
-Configure application.properties
+2\. Create a new Spring Boot project using IntelliJ IDEA or Spring Initializr.
 
-Define database connection
+3\. Add the required dependencies: Spring Web, Spring Data JPA, H2 Database or MySQL Driver, and Spring Boot DevTools.
 
-Enable Hibernate auto DDL
+4\. Open the `application.properties` file and configure the database connection details.
 
-Create Student Entity Class
+5\. Enable Hibernate automatic table creation or updating using `spring.jpa.hibernate.ddl-auto=update`.
 
-Annotate with @Entity
+6\. Create a `Student` entity class and annotate it with `@Entity`.
 
-Define fields with @Id, @GeneratedValue, etc.
+7\. Define the student fields such as `id`, `name`, `department`, and `age`.
 
-Create StudentRepository
+8\. Use `@Id` and `@GeneratedValue` annotations to define the primary key.
 
-Extend JpaRepository<Student, Long> for CRUD methods
+9\. Create a `StudentRepository` interface and extend `JpaRepository<Student, Long>` to perform CRUD operations.
 
-Create StudentController
+10\. Create a `StudentController` class and annotate it with `@RestController`.
 
-Handle HTTP methods:
+11\. Map the controller to the `/students` endpoint using `@RequestMapping`.
 
-POST /students → Add student
+12\. Implement the following REST API operations:
 
-GET /students → Get all students
+- **POST&#x20;**`/students` – Add a new student.
+- **GET&#x20;**`/students` – Retrieve all students.
+- **GET&#x20;**`/students/{id}` – Retrieve a student by ID.
+- **PUT&#x20;**`/students/{id}` – Update student details.
+- **DELETE&#x20;**`/students/{id}` – Delete a student by ID.
 
-GET /students/{id} → Get student by ID
+13\. Run the Spring Boot application and verify that it starts successfully.
 
-PUT /students/{id} → Update student
+14\. Open Postman and test all the CRUD operations using the corresponding HTTP methods and URLs.
 
-DELETE /students/{id} → Delete student
+15\. Verify the inserted, retrieved, updated, and deleted student records in the database.
 
-##PROGRAM CODE
+16\. Stop the application.
 
+17\. End the process.
+
+## Program:
 ### pom.xml
+```
 <dependencies>
     <!-- Spring Boot Web -->
     <dependency>
@@ -61,17 +68,23 @@ DELETE /students/{id} → Delete student
         <scope>runtime</scope>
     </dependency>
 </dependencies>
+```
  ### application.properties
-
+```
 spring.datasource.url=jdbc:h2:mem:testdb
 spring.datasource.driverClassName=org.h2.Driver
 spring.datasource.username=sa
 spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=update
 spring.h2.console.enabled=true
+```
+
 ### Student.java
-package com.example.demo.model;
+```java
+package com.example.studentcrud.model;
+
 import jakarta.persistence.*;
+
 @Entity
 public class Student {
     @Id
@@ -80,88 +93,129 @@ public class Student {
     private String name;
     private String department;
     private int age;
-    // Getters and Setters
-    public Long getId() { return id; }
-
-    public void setId(Long id) { this.id = id; }
-
-    public String getName() { return name; }
-
-    public void setName(String name) { this.name = name; }
-
-    public String getDepartment() { return department; }
-
-    public void setDepartment(String department) { this.department = department; }
-
-    public int getAge() { return age; }
-
-    public void setAge(int age) { this.age = age; }
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getDepartment() {
+        return department;
+    }
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+    public int getAge() {
+        return age;
+    }
+    public void setAge(int age) {
+        this.age = age;
+    }
 }
+```
 ### StudentRepository.java
-package com.example.demo.repository;
+```java
+package com.example.studentcrud.repository;
 
-import com.example.demo.model.Student;
+import com.example.studentcrud.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudentRepository extends JpaRepository<Student, Long> {
-}
-### StudentController.java
-package com.example.demo.controller;
 
-import com.example.demo.model.Student;
-import com.example.demo.repository.StudentRepository;
+}
+```
+### StudentController.java
+```java
+package com.example.studentcrud.controller;
+
+import com.example.studentcrud.model.Student;
+import com.example.studentcrud.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/students")
 public class StudentController {
 
-    @Autowired
-    private StudentRepository studentRepository;
+        @Autowired
+        private StudentRepository studentRepository;
 
-    @PostMapping
-    public Student addStudent(@RequestBody Student student) {
-        return studentRepository.save(student);
+        // CREATE
+        @PostMapping
+        public Student addStudent(@RequestBody Student student) {
+            return studentRepository.save(student);
+        }
+
+        // READ ALL
+        @GetMapping
+        public List<Student> getAllStudents() {
+            return studentRepository.findAll();
+        }
+
+        // READ BY ID
+        @GetMapping("/{id}")
+        public Student getStudent(@PathVariable Long id) {
+            return studentRepository.findById(id)
+                    .orElseThrow();
+        }
+
+        // UPDATE
+        @PutMapping("/{id}")
+        public Student updateStudent(
+                @PathVariable Long id,
+                @RequestBody Student studentDetails) {
+
+            Student student = studentRepository.findById(id)
+                    .orElseThrow();
+
+            student.setName(studentDetails.getName());
+            student.setDepartment(studentDetails.getDepartment());
+            student.setAge(studentDetails.getAge());
+
+            return studentRepository.save(student);
+        }
+
+        // DELETE
+        @DeleteMapping("/{id}")
+        public String deleteStudent(@PathVariable Long id) {
+
+            studentRepository.deleteById(id);
+
+            return "Student with ID " + id +
+                    " deleted successfully!";
+        }
     }
 
-    @GetMapping
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public Optional<Student> getStudent(@PathVariable Long id) {
-        return studentRepository.findById(id);
-    }
-
-    @PutMapping("/{id}")
-    public Student updateStudent(@PathVariable Long id, @RequestBody Student studentDetails) {
-        Student student = studentRepository.findById(id).orElseThrow();
-        student.setName(studentDetails.getName());
-        student.setAge(studentDetails.getAge());
-        student.setDepartment(studentDetails.getDepartment());
-        return studentRepository.save(student);
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteStudent(@PathVariable Long id) {
-        studentRepository.deleteById(id);
-        return "Student with ID " + id + " deleted successfully!";
-    }
-}
-### DemoApplication.java
-package com.example.demo;
+```
+### StudentCRUDApplication.java
+```java
+package com.example.studentcrud;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoApplication {
+public class StudentCrudApplication {
+
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+
+        SpringApplication.run(StudentCrudApplication.class, args);
     }
+
 }
+```
+## Output
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/7e8993f1-b6d7-4b75-bd2a-db5dd93e3e1b" />
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/dd0bd66a-11c6-4a6e-a6ce-8216ffa3b588" />
+<img width="1920" height="1200" alt="image" src="https://github.com/user-attachments/assets/f7129406-e5fb-4a52-bf8c-b9d48272a4e1" />
+
+## Result
+Thus, the Student CRUD application was successfully developed using Spring Boot, Hibernate, Spring Data JPA, and H2 Database. The Create, Read, Update, and Delete operations were implemented and tested successfully using Postman.
